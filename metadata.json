@@ -1,0 +1,10 @@
+{
+  "name": "GeoAI Outdoor Activity Recommendation Assistant",
+  "description": "Live geospatial and weather-grounded outdoor activity recommendation assistant with SLM reasoning for CSRE, IIT Bombay GeoAI Hackathon.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

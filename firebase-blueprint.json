@@ -1,0 +1,125 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with personal outdoor activity preferences and safety constraints",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 256
+        },
+        "defaultLocation": {
+          "type": "string",
+          "description": "Default home area or neighborhood",
+          "maxLength": 128
+        },
+        "defaultRadiusKm": {
+          "type": "number",
+          "description": "Preferred search radius in km"
+        },
+        "hasChildren": {
+          "type": "boolean",
+          "description": "Whether user accounts for children in activities"
+        },
+        "hasSeniors": {
+          "type": "boolean",
+          "description": "Whether user accounts for seniors/parents"
+        },
+        "hasAsthma": {
+          "type": "boolean",
+          "description": "Whether user has asthma or respiratory vulnerability"
+        },
+        "mobilityNeeds": {
+          "type": "boolean",
+          "description": "Whether user needs step-free, paved mobility access"
+        },
+        "isPregnant": {
+          "type": "boolean",
+          "description": "Whether user has pregnancy safety requirements"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      },
+      "required": ["userId", "displayName"]
+    },
+    "SavedRecommendation": {
+      "title": "SavedRecommendation",
+      "description": "Saved outdoor activity recommendation item",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of saved recommendation",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID",
+          "maxLength": 128
+        },
+        "activity": {
+          "type": "string",
+          "description": "Activity type",
+          "maxLength": 64
+        },
+        "placeName": {
+          "type": "string",
+          "description": "Recommended venue name",
+          "maxLength": 256
+        },
+        "timeWindow": {
+          "type": "string",
+          "description": "Recommended time window",
+          "maxLength": 128
+        },
+        "suitabilityScore": {
+          "type": "number",
+          "description": "Activity suitability score out of 100"
+        },
+        "locationName": {
+          "type": "string",
+          "description": "Location query name",
+          "maxLength": 256
+        },
+        "weatherSummary": {
+          "type": "string",
+          "description": "Short weather summary",
+          "maxLength": 256
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when item was saved"
+        }
+      },
+      "required": ["id", "userId", "activity", "placeName", "suitabilityScore"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "User profile document containing personal safety settings and outdoor activity defaults"
+    },
+    "/users/{userId}/savedRecommendations/{recommendationId}": {
+      "schema": {
+        "$ref": "#/entities/SavedRecommendation"
+      },
+      "description": "Saved recommendations for an authenticated user"
+    }
+  }
+}

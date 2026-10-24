@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation for UserProfile
+    function isValidUserProfile(data, userId) {
+      return data.userId == userId &&
+        data.displayName is string &&
+        data.displayName.size() > 0 &&
+        data.displayName.size() <= 128 &&
+        (!('email' in data) || (data.email is string && data.email.size() <= 256)) &&
+        (!('defaultLocation' in data) || (data.defaultLocation is string && data.defaultLocation.size() <= 128)) &&
+        (!('defaultRadiusKm' in data) || (data.defaultRadiusKm is number && data.defaultRadiusKm > 0 && data.defaultRadiusKm <= 50)) &&
+        (!('hasChildren' in data) || data.hasChildren is bool) &&
+        (!('hasSeniors' in data) || data.hasSeniors is bool) &&
+        (!('hasAsthma' in data) || data.hasAsthma is bool) &&
+        (!('mobilityNeeds' in data) || data.mobilityNeeds is bool) &&
+        (!('isPregnant' in data) || data.isPregnant is bool);
+    }
+
+    // Validation for SavedRecommendation
+    function isValidSavedRecommendation(data, userId) {
+      return data.userId == userId &&
+        data.id is string &&
+        data.id.size() > 0 &&
+        data.id.size() <= 128 &&
+        data.activity is string &&
+        data.activity.size() <= 64 &&
+        data.placeName is string &&
+        data.placeName.size() > 0 &&
+        data.placeName.size() <= 256 &&
+        data.suitabilityScore is number &&
+        data.suitabilityScore >= 0 &&
+        data.suitabilityScore <= 100 &&
+        (!('timeWindow' in data) || (data.timeWindow is string && data.timeWindow.size() <= 128)) &&
+        (!('locationName' in data) || (data.locationName is string && data.locationName.size() <= 256)) &&
+        (!('weatherSummary' in data) || (data.weatherSummary is string && data.weatherSummary.size() <= 256));
+    }
+
+    // User Profile Document
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // Users cannot list other users
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming(), userId);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming(), userId);
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Subcollection: Saved Recommendations
+      match /savedRecommendations/{recommendationId} {
+        allow get, list: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(recommendationId) && isValidSavedRecommendation(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(recommendationId) && isValidSavedRecommendation(incoming(), userId);
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(recommendationId);
+      }
+    }
+
+    // Test connection document for initial health checks
+    match /test/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
